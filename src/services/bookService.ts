@@ -1,4 +1,4 @@
-import bookSchema from "@/models/Book";
+import bookSchema from "@/models/BookMotel";
 import { BookResult, CreateBookInput } from "@/types/book";
 
 export const createBookService = async (

@@ -1,0 +1,16 @@
+# Ignore environment variables
+.env
+
+# Node.js dependencies
+node_modules/
+
+# Log files
+*.log
+
+# OS or IDE-specific files
+.DS_Store
+.vscode/
+
+# Build output
+dist/
+build/
