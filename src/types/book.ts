@@ -35,6 +35,6 @@ export interface CreateBookInput {
 
 export interface BookResult {
   success: boolean;
-  data: IBook;
+  data: IBook[];
   message?: string;
 }

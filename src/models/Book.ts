@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import { IBook } from "@/types/book";
 
 const bookSchema = new Schema(
   {

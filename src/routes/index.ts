@@ -1,10 +1,10 @@
 import { Router } from "express";
 import bookRoute from "./bookRoutes";
-import userRoute from "./userRouter";
+import cartRoute from "./cartRoutes";
 
 const router = Router();
 
 router.use("/books", bookRoute);
-router.use("/users", userRoute);
+router.use("/cart", cartRoute);
 
 export default router;
