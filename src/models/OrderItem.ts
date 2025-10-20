@@ -1,24 +1,43 @@
-import { Schema, model, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-interface IOrderItem {
-  orderId: Types.ObjectId;
-  bookId: Types.ObjectId;
+export interface IOrderItem extends Document {
+  orderId: mongoose.Types.ObjectId;
+  bookID: mongoose.Types.ObjectId;
   quantity: number;
-  totalPrice: number;
   sellPrice: number;
+  totalPrice: number;
 }
 
-const orderItemSchema = new Schema<IOrderItem>(
+const OrderItemSchema: Schema = new Schema(
   {
-    orderId: { type: Schema.Types.ObjectId, required: true, ref: "Order" },
-    bookId: { type: Schema.Types.ObjectId, required: true, ref: "Book" },
-    quantity: { type: Number, required: true },
-    totalPrice: { type: Number, required: true },
-    sellPrice: { type: Number, required: true },
+    orderId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Order",
+    },
+    bookId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Book",
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+    sellPrice: {
+      type: Number,
+      required: true,
+    },
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const OrderItem = model<IOrderItem>("OrderItem", orderItemSchema);
+const OrderItem = mongoose.model<IOrderItem>("OrderItem", OrderItemSchema);
 
 export default OrderItem;

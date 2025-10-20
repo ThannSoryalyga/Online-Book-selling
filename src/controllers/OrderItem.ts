@@ -1,50 +1,51 @@
 import { Request, Response } from "express";
 import OrderItem from "../models/OrderItem";
+import { access } from "fs";
 
-// Create OrderItem
 export const createOrderItem = async (req: Request, res: Response) => {
   try {
-    const { orderId, bookId, quantity, sellPrice } = req.body;
-
-    if (!orderId || !bookId || !quantity || !sellPrice) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const totalPrice = quantity * sellPrice;
-
-    const orderItem = await OrderItem.create({
+    const { orderId, bookId, quantity, sellPrice, totalPrice } = req.body;
+    const newOrderItem = new OrderItem({
       orderId,
       bookId,
       quantity,
       sellPrice,
       totalPrice,
     });
-
-    res.status(201).json(orderItem);
+    const savedOrderItem = await newOrderItem.save();
+    res.status(201).json({
+      message: "Order item created successfully",
+      data: {
+        orderId: savedOrderItem.orderId,
+        quantity: savedOrderItem.quantity,
+        sellPrice: savedOrderItem.sellPrice,
+        totalPrice: savedOrderItem.totalPrice,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to create order item", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };
 
-// Get all OrderItems
-export const getOrderItems = async (req: Request, res: Response) => {
+export const getOrderItemById = async (req: Request, res: Response) => {
   try {
-    const orderItems = await OrderItem.find()
+    const items = await OrderItem.find()
       .populate("bookId")
-      .populate("orderId");
-    res.status(200).json(orderItems);
+      .populate("orderId")
+      .populate("quantity")
+      .populate("sellPrice")
+      .populate("totalPrice");
+    res.status(200).json({
+      message: "Order items fetched successfully",
+      data: {
+        orderId: req.params.id,
+        bookId: req.params.id,
+        quantity: req.params.quantity,
+        sellPrice: req.params.sellPrice,
+        totalPrice: req.params.totalPrice,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch order items", error });
-  }
-};
-
-// Get OrderItems by Order
-export const getOrderItemsByOrder = async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params;
-    const orderItems = await OrderItem.find({ orderId }).populate("bookId");
-    res.status(200).json(orderItems);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch order items", error });
+    res.status(500).json({ message: "Server Error", error });
   }
 };

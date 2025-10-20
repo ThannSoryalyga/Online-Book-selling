@@ -5,6 +5,7 @@ import userRoutes from "./routes/authRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import Role from "./models/RoleModel";
 import authRoutes from "./routes/authRoutes";
+import orderItemRoutes from "./routes/orderitemRoutes";
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admins", adminRoutes);
+app.use("/api/order-items", orderItemRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI =
