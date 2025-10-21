@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bookRoute from "./bookRoutes";
-import userRoute from "./userRouter";
+import cartRoute from "./cartRoutes";
 
 const router = Router();
 
@@ -8,6 +8,6 @@ const router = Router();
 router.use("/login", require("./login").default);
 router.use("/register", require("./register").default);
 router.use("/books", bookRoute);
-router.use("/users", userRoute);
+router.use("/cart", cartRoute);
 
 export default router;
