@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import User from "../models/AuthModel";
 import Role from "../models/RoleModel";
 import dotenv from "dotenv";
-import { access } from "fs";
 
 // Define RoleType interface
 interface RoleType {
