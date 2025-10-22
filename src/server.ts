@@ -17,12 +17,12 @@ app.use("/api/admins", adminRoutes);
 app.use("/api/order-items", orderItemRoutes);
 
 const PORT = process.env.PORT || 4000;
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/online-book";
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/online-book";
 
 // MongoDB connect + create roles
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGODB_URI)
   .then(async () => {
     console.log("MongoDB connected");
     const roles = ["user", "admin"];
