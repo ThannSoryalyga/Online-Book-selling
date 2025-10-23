@@ -1,16 +1,8 @@
 import express from "express";
-import {
-  registerAdmin,
-  loginAdmin,
-  logoutAdmin,
-} from "../controllers/adminController";
-import { authenticate, authorizeRoles } from "../middlewares/authMiddleware";
-
+import { registerAdmin, login } from "../controllers/authcontroller";
 const router = express.Router();
 
-// Admin routes
 router.post("/register", registerAdmin);
-router.post("/login", loginAdmin);
-router.post("/logout", authenticate, authorizeRoles(["admin"]), logoutAdmin);
+router.post("/login", login);
 
 export default router;

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "@/config/data-source";
-import { User } from "@/models/user";
+import { User } from "@/models/UserModel";
 import bcrypt from "bcrypt";
 
 const userRepo = AppDataSource.getRepository(User);
