@@ -1,44 +1,34 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload | string;
+    }
+  }
+}
 
-// ✅ Authenticate token
-export const authenticate = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader)
-    return res.status(401).json({ message: "No token provided" });
-
-  const token = authHeader.split(" ")[1];
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      id: string;
-      role: string;
-    };
-    (req as any).user = decoded;
+    const token = req.header("authorization")?.replace("Bearer ", "");
+    if (!token){
+      return res.status(401).json({message:"No token provided"});
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload | string;
+    req.user = decoded as JwtPayload;
     next();
-  } catch {
-    return res.status(401).json({ message: "Invalid or expired token" });
+  } catch (error:any){
+    return res.status(401).json({message: "Token is not valid"});
   }
 };
 
-// ✅ Authorize dynamically by roles
-export const authorizeRoles = (roles: string[]) => {
+export const authorize = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user;
-    if (!user) return res.status(401).json({ message: "Not authenticated" });
-
-    if (!roles.includes(user.role)) {
-      return res
-        .status(403)
-        .json({ message: `Access denied. Required role: ${roles.join(", ")}` });
+    const userRole = req.user?.roles;
+    if(!userRole || !userRole.some((role: string) => allowedRole.includes(role))){
+      return res.status(401).json({message: "Forbidden"});
     }
     next();
-  };
-};
+  }
+}
