@@ -32,96 +32,96 @@ export const createCategoryService = async (req: Request, res: Response) => {
     });
   }
 };
-
 export const getAllCategoriesService = async (req: Request, res: Response) => {
   try {
     const categories = await categorySchema.find().populate("userId");
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: categories,
+      message: "Categories fetched successfully.",
     });
   } catch (error: any) {
-    return res.status(400).json({
+    res.status(500).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to fetch categories.",
+      message: "Failed to get categories.",
     });
   }
 };
 
 export const getCategoryByIdService = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const category = await categorySchema.findById(id);
+    const categoryId = req.params.id;
+    const category = await categorySchema
+      .findById(categoryId)
+      .populate("userId");
     if (!category) {
       return res.status(404).json({
         success: false,
         message: "Category not found.",
       });
     }
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: category,
+      message: "Category fetched successfully.",
     });
   } catch (error: any) {
-    return res.status(400).json({
+    res.status(500).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to fetch category.",
+      message: "Failed to get category.",
     });
   }
 };
 
 export const updateCategoryService = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const userId = req.user?.userId;
+    const categoryId = req.params.id;
     const { name, description } = req.body;
 
-    const category = await categorySchema.findById(id);
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found.",
-      });
-    }
-
-    category.name = name || category.name;
-    category.description = description || category.description;
-    await category.save();
-
-    return res.status(200).json({
+    const newcategory = await categorySchema.findByIdAndUpdate(
+      {
+        _id: categoryId,
+      },
+      {
+        name,
+        description,
+        userId,
+      }
+    );
+    res.status(201).json({
       success: true,
-      data: category,
+      data: newcategory,
       message: "Category updated successfully.",
     });
   } catch (error: any) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Category update failed.",
+      message: "failed to update category.",
     });
   }
 };
 
 export const deleteCategoryService = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const category = await categorySchema.findByIdAndDelete(id);
-    if (!category) {
+    const categoryId = req.params.id;
+    const deletedCategory = await categorySchema.findByIdAndDelete({
+      _id: categoryId,
+    });
+    if (!deletedCategory) {
       return res.status(404).json({
         success: false,
         message: "Category not found.",
       });
     }
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Category deleted successfully.",
     });
   } catch (error: any) {
-    return res.status(400).json({
+    res.status(500).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : "Category deletion failed.",
+      message: "Failed to delete category.",
     });
   }
 };

@@ -13,17 +13,3 @@ export interface IUser extends Document {
   createdAt?: Date;
   updatedAt?: Date;
 }
-// export interface CreateUserInput {
-//   email: string;
-//   firstName: string;
-//   lastName: string;
-//   userName: string;
-//   password: string;
-//   phone?: string;
-//   age?: number;
-// }
-// export interface UserResult {
-//   success: boolean;
-//   data: IUser;
-//   message?: string;
-// }

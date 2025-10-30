@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ICategory } from "../types/category";
+import { ICategory } from "@/types/category";
 
 const categorySchema = new Schema<ICategory>(
   {
@@ -7,8 +7,8 @@ const categorySchema = new Schema<ICategory>(
     description: { type: String, trim: true },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: "User",
+      ref: "user",
+      required: true,
     },
   },
   { timestamps: true }

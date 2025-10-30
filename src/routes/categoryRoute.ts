@@ -1,7 +1,10 @@
 import express from "express";
 import {
   createCategoryController,
+  deleteCategoryController,
   getAllCategoriesController,
+  getCategoryByIdController,
+  updateCategoryController,
 } from "@/controllers/categoryController";
 import { authenticate, authorize } from "@/middleware/authMiddleware";
 
@@ -10,7 +13,7 @@ const router = express.Router();
 router.post(
   "/create-category",
   authenticate,
-  authorize(["user"]),
+  authorize(["admin"]),
   createCategoryController
 );
 router.get(
@@ -19,23 +22,26 @@ router.get(
   authorize(["admin"]),
   getAllCategoriesController
 );
-router.get(
-  "/get-category/:id",
-  authenticate,
-  authorize(["admin"]),
-  createCategoryController
-);
 
 router.put(
   "/update-category/:id",
   authenticate,
   authorize(["admin"]),
-  createCategoryController
+  updateCategoryController
 );
+
+router.get(
+  "/get-category/:id",
+  authenticate,
+  authorize(["admin"]),
+  getCategoryByIdController
+);
+
 router.delete(
   "/delete-category/:id",
   authenticate,
   authorize(["admin"]),
-  createCategoryController
+  deleteCategoryController
 );
+
 export default router;

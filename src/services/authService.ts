@@ -37,7 +37,6 @@ export const registerService = async (req: Request, res: Response) => {
       password: hashedPassword,
       phone,
       age,
-      roles: ["user"],
     });
     await newUser.save();
 
@@ -50,7 +49,7 @@ export const registerService = async (req: Request, res: Response) => {
     const token = generateToken(newUser._id, newUser.roles);
     res.status(201).json({
       success: true,
-      user: newUser,
+      data: newUser,
       token,
       message: "User registered successfully.",
     });
@@ -79,6 +78,7 @@ export const loginService = async (req: Request, res: Response) => {
         message: "Invalid email or password.",
       });
     }
+    console.log("User Roles:", existEmail.roles);
     const token = generateToken(existEmail._id, existEmail.roles);
     return res.status(200).json({
       success: true,
