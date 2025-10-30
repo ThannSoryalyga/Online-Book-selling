@@ -1,35 +1,15 @@
 import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes";
-import adminRoutes from "./routes/adminRoutes";
-import Role from "./models/RoleModel";
+import connectDB from "./config/database";
+import Router from "@/routes/index";
 
-dotenv.config();
 const app = express();
+
 app.use(express.json());
 
-const PORT = process.env.PORT || 4000;
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/online-book";
+app.use(express.urlencoded({ extended: true }));
 
-// Initialize roles
-const initRoles = async () => {
-  const roles = ["user", "admin"];
-  for (const name of roles) {
-    const exists = await Role.findOne({ name });
-    if (!exists) await Role.create({ name });
-  }
-};
-
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-
-mongoose
-  .connect(MONGO_URI)
-  .then(async () => {
-    console.log("MongoDB connected");
-    await initRoles();
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => console.error("MongoDB error:", err));
+connectDB();
+app.use("/api/v1", Router);
+app.listen(4000, () => {
+  console.log(`server run on port 4000`);
+});

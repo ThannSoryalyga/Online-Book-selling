@@ -1,13 +1,14 @@
 import { Router } from "express";
-import bookRoute from "./bookRoutes";
-import cartRoute from "./cartRoutes";
+import bookRoute from "./bookRoute";
+import categoryRoute from "./categoryRoute";
+import authRoute from "./authRoute";
+import authorRoute from "./authorRoute";
 
 const router = Router();
 
-// router.use("/books", bookRoute);
-router.use("/login", require("./login").default);
-router.use("/register", require("./register").default);
+router.use("/auth", authRoute);
 router.use("/books", bookRoute);
-router.use("/cart", cartRoute);
+router.use("/categories", categoryRoute);
+router.use("/authors", authorRoute);
 
 export default router;

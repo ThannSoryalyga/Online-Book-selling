@@ -1,129 +1,169 @@
-import bookSchema from "@/models/BookMotel";
-import { BookResult, CreateBookInput } from "@/types/book";
-
-export const createBookService = async (
-  bookData: CreateBookInput
-): Promise<BookResult> => {
+import bookShema from "@/models/bookModels";
+import { Request, Response } from "express";
+export const createBook = async (req: Request, res: Response) => {
   try {
-    const newBook = new bookSchema(bookData);
-    const savedBook = await newBook.save();
-    return {
-      success: true,
-      data: savedBook,
-      message: "Book created successfully.",
-    };
-  } catch (error) {
-    console.error("Error creating book:", error);
-    return {
-      success: false,
-      data: null as any,
-      message: "Failed to create book.",
-    };
+    const {
+      title,
+      description,
+      authorId,
+      price,
+      categoryId,
+      stock,
+      imageUrl,
+      publishYear,
+    } = req.body;
+    const userId = req.user?.userId;
+    const newBook = new bookShema({
+      title,
+      description,
+      authorId,
+      publisher: userId,
+      price,
+      categoryId,
+      stock,
+      imageUrl,
+      publishYear,
+    });
+    if (stock <= 0 || price <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Stock and Price must be greater than zero" });
+    }
+
+    await newBook.save();
+
+    res
+      .status(201)
+      .json({ data: newBook, message: "Book created successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const getBooksService = async (): Promise<BookResult> => {
+export const getAllBooks = async (req: Request, res: Response) => {
   try {
-    const books = await bookSchema.find();
-    return {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string;
+
+    const query: any = {};
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { author: { $regex: search, $options: "i" } },
+      ];
+    }
+    const books = await bookShema
+      .find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .populate("authorId")
+      .populate("publisher")
+      .populate("categoryId");
+
+    const totalBooks = await bookShema.countDocuments(query);
+    const totalPages = Math.ceil(totalBooks / limit);
+    res.status(200).json({
       success: true,
       data: books,
-      message: "Books fetched successfully.",
-    };
-  } catch (error) {
-    console.error("Error fetching books:", error);
-    return {
-      success: false,
-      data: null as any,
-      message: "Failed to fetch books.",
-    };
+      meta: {
+        page,
+        limit,
+        totalBooks,
+        totalPages,
+      },
+      message: "Books fetched successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const getBookByIdService = async (id: string): Promise<BookResult> => {
+export const getBookById = async (req: Request, res: Response) => {
   try {
-    const book = await bookSchema.findById(id);
+    const id = req.params.id;
+    const book = await bookShema
+      .findById(id)
+      .populate("authorId")
+      .populate("publisher")
+      .populate("categoryId");
     if (!book) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Book not found.",
-      };
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found." });
     }
-
-    return {
+    res.status(200).json({
       success: true,
       data: book,
-      message: "Book fetched successfully.",
-    };
-  } catch (error) {
-    console.error("Error fetching book:", error);
-    return {
-      success: false,
-      data: null as any,
-      message: "Failed to fetch book.",
-    };
-  }
-};
-export const updateBookService = async (
-  id: string,
-  updateData: Partial<CreateBookInput>
-): Promise<BookResult> => {
-  try {
-    const updatedBook = await bookSchema.findByIdAndUpdate(id, updateData, {
-      new: true,
+      message: "Book fetched successfully",
     });
-    if (!updatedBook) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Book not found.",
-      };
-    }
-    return {
-      success: true,
-      data: updatedBook,
-      message: "Book updated successfully.",
-    };
-  } catch (error) {
-    console.error("Error updating book:", error);
-    return {
-      success: false,
-      data: null as any,
-      message: "Failed to update book.",
-    };
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const deleteBookService = async (id: string): Promise<BookResult> => {
+export const updateBook = async (req: Request, res: Response) => {
   try {
-    const deletedBook = await bookSchema.findByIdAndDelete(id);
-    if (!deletedBook) {
-      return {
-        success: false,
-        data: null as any,
-        message: "Book not found.",
-      };
+    const id = req.params.id;
+    const {
+      title,
+      description,
+      authorId,
+      price,
+      categoryId,
+      stock,
+      imageUrl,
+      publishYear,
+    } = req.body;
+    const userId = req.user?.userId;
+    const newBook = await bookShema.findByIdAndUpdate(
+      { _id: id },
+      {
+        title,
+        description,
+        authorId,
+        publisher: userId,
+        price,
+        categoryId,
+        stock,
+        imageUrl,
+        publishYear,
+      },
+      { new: true }
+    );
+    if (stock <= 0 || price <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Stock and Price must be greater than zero" });
     }
-    return {
-      success: true,
-      data: deletedBook,
-      message: "Book deleted successfully.",
-    };
-  } catch (error) {
-    console.error("Error deleting book:", error);
-    return {
-      success: false,
-      data: null as any,
-      message: "Failed to delete book.",
-    };
+    res
+      .status(201)
+      .json({ data: newBook, message: "Book created successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-export default {
-  createBookService,
-  getBooksService,
-  getBookByIdService,
-  updateBookService,
-  deleteBookService,
+export const deleteBook = async (req: Request, res: Response) => {
+  try {
+    const Id = req.params.id;
+    const deletedBook = await bookShema.findByIdAndDelete({
+      _id: Id,
+    });
+    if (!deletedBook) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found.",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Book deleted successfully.",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete category.",
+    });
+  }
 };

@@ -1,83 +1,110 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import User from "../models/AuthModel";
-import dotenv from "dotenv";
+import userModels from "@/models/userModels";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET || "secret123";
+const generateToken = (userId: string, roles: string[]): string => {
+  return jwt.sign({ userId, roles }, process.env.JWT_SECRET!, {
+    expiresIn: "7d",
+  });
+};
 
-//Register a new user
-
-export const createUserService = async (req: Request, res: Response) => {
+export const registerService = async (req: Request, res: Response) => {
   try {
-    const { email, username, password } = req.body;
-
-    // 1️⃣ Check if user already exists
-    const existing = await User.findOne({ $or: [{ email }, { username }] });
-    if (existing) {
-      return res
-        .status(400)
-        .json({ message: "Email or username already exists" });
+    const { email, firstName, lastName, userName, password, phone, age } =
+      req.body;
+    const existingEmail = await userModels.findOne({ email });
+    const existPhone = await userModels.findOne({ phone });
+    if (existingEmail) {
+      res.status(400).json({
+        success: false,
+        message: "Email already exists.",
+      });
+    }
+    if (existPhone) {
+      res.status(400).json({
+        success: false,
+        message: "Phone number already exists.",
+      });
     }
 
-    // 2️⃣ Hash the password
-    const hashed = await bcrypt.hash(password, 10);
-
-    // 3️⃣ Create the new user
-    const user = await User.create({
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const newUser = new userModels({
       email,
-      username,
-      password: hashed,
+      firstName,
+      lastName,
+      userName,
+      password: hashedPassword,
+      phone,
+      age,
+    });
+    await newUser.save();
+
+    res.status(201).json({
+      success: true,
+      user: newUser,
+      message: "User registered successfully.",
     });
 
-    // 4️⃣ Respond with JSON
+    const token = generateToken(newUser._id, newUser.roles);
     res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-      },
+      success: true,
+      data: newUser,
+      token,
+      message: "User registered successfully.",
     });
-  } catch (err: any) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Registration failed.",
+    });
   }
 };
 
-// Login user or admin
-
-export const loginUserService = async (req: Request, res: Response) => {
+export const loginService = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-
-    // 1️⃣ Find user by email
-    const user = await User.findOne({ email }).populate("roleId");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const existEmail = await userModels.findOne({ email });
+    if (!existEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
     }
-
-    // 2️⃣ Check password match
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.status(400).json({ message: "Invalid password" });
+    const existPassword = await bcrypt.compare(password, existEmail?.password);
+    if (!existPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
     }
-
-    // 3️⃣ Create JWT token
-    const token = jwt.sign({ id: user._id, role: user.roleId }, JWT_SECRET, {
-      expiresIn: "1h",
+    console.log("User Roles:", existEmail.roles);
+    const token = generateToken(existEmail._id, existEmail.roles);
+    return res.status(200).json({
+      success: true,
+      user: existEmail,
+      token,
+      message: "User logged in successfully.",
     });
-
-    // 4️⃣ Respond with JSON
-    res.status(200).json({
-      message: "User registered",
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-      },
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Login failed.",
     });
-  } catch (err: any) {
-    res.status(400).json({ message: err.message });
+  }
+};
+
+export const logoutService = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({
+      success: true,
+      message: "User logged out successfully.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Logout failed.",
+    });
   }
 };

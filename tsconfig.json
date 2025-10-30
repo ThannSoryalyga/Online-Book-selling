@@ -1,17 +1,22 @@
 {
   "compilerOptions": {
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "target": "ES6",
     "module": "CommonJS",
     "rootDir": "./src",
-    "outDir": "./dist",
+    "baseUrl": "./src",
+    "outDir": "dist",
+    "removeComments": true,
     "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": "./",
-    "paths": { "@/*": ["src/*"] }
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "types"],
   "exclude": ["node_modules"]
 }
